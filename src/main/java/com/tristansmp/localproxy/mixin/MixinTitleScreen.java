@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screen.ConnectScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.LockButtonWidget;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.text.Text;
@@ -21,13 +22,15 @@ public class MixinTitleScreen extends Screen {
 
     @Inject(method = "initWidgetsNormal", at = @At("RETURN"))
     public void init(CallbackInfo ci) {
-        int x = this.width / 2 - 100;
-        int y = this.height / 4 + 120;
         int l = this.height / 4 + 48;
 
-        this.addDrawableChild(ButtonWidget.builder(Text.translatable("Join TristanSMP"), (button) -> {
-            ConnectScreen.connect(this, this.client, ServerAddress.parse("localhost:" + LocalProxy.LocalPort), new ServerInfo("owo", "localhost", false));
-        }).dimensions(this.width / 2 + 150, l + 72 + 12, 98, 20).build());
-
+        if (LocalProxy.cloudflared.isConnected()) {
+            this.addDrawableChild(ButtonWidget.builder(Text.translatable("Join TristanSMP"), (button) -> {
+                ConnectScreen.connect(this, this.client, ServerAddress.parse("localhost:" + LocalProxy.LocalPort), new ServerInfo("owo", "localhost", false));
+            }).dimensions(this.width / 2 + 150, l + 72 + 12, 98, 20).build());
+        } else {
+            this.addDrawableChild(LockButtonWidget.builder(Text.translatable("Join TristanSMP"), (button) -> {
+            }).dimensions(this.width / 2 + 150, l + 72 + 12, 98, 20).build());
+        }
     }
 }

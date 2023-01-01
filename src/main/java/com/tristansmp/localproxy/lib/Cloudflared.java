@@ -5,13 +5,22 @@ import com.tristansmp.localproxy.LocalProxy;
 import java.io.File;
 
 public class Cloudflared {
-
     private final Runtime rt = Runtime.getRuntime();
+    public ConnectionState state = ConnectionState.DISCONNECTED;
     private boolean usingGlobalCloudflared = false;
     private String cloudflaredPath = "cloudflared";
     private Process process = null;
 
     public Cloudflared() {
+        this.setup();
+
+        rt.addShutdownHook(new Thread(() -> {
+            this.disconnect();
+        }));
+    }
+
+    private void setup() {
+        this.state = ConnectionState.CONNECTING;
         try {
             try {
                 LocalProxy.LOGGER.info("attempting to use cloudflared from /opt/homebrew/bin/cloudflared");
@@ -65,47 +74,59 @@ public class Cloudflared {
         } else if (os.contains("mac")) {
             downloadUrl = Constants.CLOUDFLARED_MAC;
         } else {
+            this.state = ConnectionState.DISCONNECTED;
             throw new RuntimeException("Unsupported OS");
         }
 
         LocalProxy.LOGGER.info("Downloading cloudflared from " + downloadUrl);
 
-        try {
-            rt.exec("curl -L " + downloadUrl + " -o cloudflared");
-        } catch (Exception e) {
-            LocalProxy.LOGGER.error("Failed to download cloudflared");
-        }
+        download(downloadUrl);
     }
 
-    public void downloadBundledCloudflared(String url) {
+    private void download(String downloadUrl) {
         try {
-            LocalProxy.LOGGER.info("Downloading bundled cloudflared");
-            rt.exec("curl -L " + url + " -o cloudflared");
-            rt.exec("chmod +x cloudflared");
+            Process p = rt.exec("curl -L " + downloadUrl + " -o cloudflared");
+            p.waitFor();
         } catch (Exception e) {
-            LocalProxy.LOGGER.error("Failed to download bundled cloudflared");
+            this.state = ConnectionState.DISCONNECTED;
+
+            LocalProxy.LOGGER.error("Failed to download cloudflared");
+            LocalProxy.LOGGER.error(e.getMessage());
         }
     }
 
     public void connect(String url, String localPort) {
-        if (this.process != null) {
-            this.process.destroy();
-        }
+        destroyProcIfExists();
 
         try {
             if (usingGlobalCloudflared) {
-                rt.exec("cloudflared access tcp --hostname " + url + " --url localhost:" + localPort);
+                process = rt.exec(cloudflaredPath + " access tcp --hostname " + url + " --url localhost:" + localPort);
             } else {
                 process = rt.exec("./cloudflared access tcp --hostname " + url + " --url localhost:" + localPort);
             }
+
+            this.state = ConnectionState.CONNECTED;
+
         } catch (Exception e) {
+            this.state = ConnectionState.DISCONNECTED;
+
             LocalProxy.LOGGER.error("Failed to connect to cloudflared");
+            LocalProxy.LOGGER.error(e.getMessage());
         }
     }
 
     public void disconnect() {
+        destroyProcIfExists();
+        this.state = ConnectionState.DISCONNECTED;
+    }
+
+    private void destroyProcIfExists() {
         if (this.process != null) {
             this.process.destroy();
         }
+    }
+
+    public boolean isConnected() {
+        return this.state == ConnectionState.CONNECTED;
     }
 }

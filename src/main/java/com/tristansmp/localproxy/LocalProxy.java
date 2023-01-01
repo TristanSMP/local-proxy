@@ -16,7 +16,6 @@ public class LocalProxy implements ModInitializer {
     @Override
     public void onInitialize() {
         Meta meta = LocalProxy.api.getMeta();
-
         LocalProxy.cloudflared.connect(meta.getUri(), String.valueOf(LocalPort));
     }
 }
