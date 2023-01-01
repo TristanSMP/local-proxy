@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "local-proxy",
+  "version": "${version}",
+  "name": "Local Proxy",
+  "description": "Local client side implementation of edge-proxy",
+  "authors": [
+    "twisttaan"
+  ],
+  "contact": {
+    "website": "https://tristansmp.com",
+    "repo": "https://github.com/tristansmp/local-proxy"
+  },
+  "license": "MIT",
+  "icon": "assets/local-proxy/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.tristansmp.localproxy.LocalProxy"
+    ]
+  },
+  "mixins": [
+    "local-proxy.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.12",
+    "fabric": "*",
+    "minecraft": "1.19.3"
+  }
+}
