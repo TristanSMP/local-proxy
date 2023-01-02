@@ -1,6 +1,6 @@
 # local-proxy
 
-Local proxy uses [cloudflared](https://developers.cloudflare.com/cloudflare-one/applications/non-http/arbitrary-tcp/#connect-from-a-client-machine) to locally proxy into Tristan SMP instead of using the public reverse proxy.
+Local proxy uses [cloudflared](https://developers.cloudflare.com/cloudflare-one/applications/non-http/arbitrary-tcp/#connect-from-a-client-machine) to locally proxy into Tristan SMP instead of using the [public reverse proxy](https://github.com/TristanSMP/edge-proxy).
 
 ## What it looks like
 
